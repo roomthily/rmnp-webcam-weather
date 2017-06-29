@@ -5,8 +5,11 @@
 var express = require('express');
 var app = express();
 
-var suncalc = require('suncalc');
-var moment = require('moment');
+var suncalc = require('suncalc'),
+    client = require('node-rest-client').Client, 
+    jimp = require('jimp'),
+    thief = require('color-thief-jimp'),
+    chroma = require('chroma-js');
 
 // webcams: https://www.nps.gov/romo/learn/photosmultimedia/webcams.htm
 
@@ -21,9 +24,47 @@ app.get("/", function (request, response) {
 app.get("/weather", function (request, response) {
   var webcam = request.query.webcam || "divide";
   
-  console.log(_goldenhour(webcam));
+  // at some point, want to timebox the request
+  // console.log(_goldenhour(webcam));
   
-  response.send('');
+  // a test imge
+  var url = 'https://cdn.glitch.com/a2065909-acd9-44c7-8be4-b37d17dee6ef%2Fglacier_basin_overcast.jpg?1498765829796';
+  var Client = new client();
+  var req = Client.get(url,
+    undefined,
+    function(data, res) {
+      // get the jpg image
+      // load to jimp
+      // deal with the mask problem
+      
+      // for the sky pixels
+      //  a: get avg color || dominant colors
+      //  b: if BLUE, no weather else grey/white/other (scary): weather
+      
+      jimp.read(data)
+      .then(function(snap) {
+        // let's see if that even worked
+        console.log(snap != undefined, snap.bitmap.width, snap.bitmap.height);
+        
+        // for the divide view, it's like a box in the upper left
+        // so let's fake the mask part and deal with the color
+        var cropped = snap.crop(0, 0, Math.floor(snap.bitmap.width/5), Math.floor(snap.bitmap.height/5));
+        
+        var dom = thief.getColor(cropped);
+        var palette = thief.getPalette(cropped);
+        
+        console.log(chroma(dom).hex());
+        console.log(palette);
+        
+        response.json({"dominant": chroma(dom).hex(), "palette": palette.map(p => chroma(p).hex())});
+        
+      }).catch(function(err) {
+        console.log('jimp error: ', err);
+      }); 
+    }
+  ).on('error', function(error) {
+    response.json({'error': error});
+  });
 });
 
 const webcam_coords = {
