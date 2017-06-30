@@ -9,7 +9,8 @@ var suncalc = require('suncalc'),
     client = require('node-rest-client').Client, 
     jimp = require('jimp'),
     thief = require('color-thief-jimp'),
-    chroma = require('chroma-js');
+    chroma = require('chroma-js'),
+    delta = require('delta-e');
 
 // webcams: https://www.nps.gov/romo/learn/photosmultimedia/webcams.htm
 
@@ -56,6 +57,8 @@ app.get("/weather", function (request, response) {
         console.log(chroma(dom).hex());
         console.log(palette);
         
+        _close_to_blue(dom);
+        
         response.json({"dominant": chroma(dom).hex(), "palette": palette.map(p => chroma(p).hex())});
         
       }).catch(function(err) {
@@ -66,6 +69,31 @@ app.get("/weather", function (request, response) {
     response.json({'error': error});
   });
 });
+
+function _close_to_blue(color) {
+  // something to test with since it is cloudy
+  // #7CB3EC lighter rgb(124, 179, 236)
+  // #567DC2 darker rgb(86, 125, 194)
+  
+  // red rgb(230, 24, 24)
+  // yellow rgb(230, 186, 24)
+  // a green rgb(24, 230, 141)
+  // mmore turquoise rgb(8, 246, 226)
+  
+  // everything to lab colors
+  // as {L: , A: , B: }
+  var src_lab = chroma(color).lab();
+  var src = {L: src_lab[0], A: src_lab[1], B: src_lab[2]};
+  
+  // tmp sorrows
+  var blues = [[124, 179, 236], [86, 125, 194], [230, 24, 24], [230, 186, 24], [24, 230, 141], [8, 246, 226]].map(c => { var lab = chroma(c).lab(); return {L: lab[0], A: lab[1], B: lab[2]}});
+  
+  for (var b in blues) {
+    console.log(b, delta.getDeltaE00(src, blues[b]));
+  }
+  
+  return false;
+}
 
 const webcam_coords = {
   "alpine": [40.441070, -105.753852],
