@@ -1,7 +1,7 @@
 Is there weather at Rocky Mountain National Park?
 =================================================
 
-A request that checks one of the RMNP webcams (Longs Peak, Continental Divide or Alpine Visitors Center) for blue skies. 
+A request that checks one of the [RMNP webcams](https://www.nps.gov/romo/learn/photosmultimedia/webcams.htm) (Longs Peak, Continental Divide or Alpine Visitors Center) for blue skies. 
 
 
 

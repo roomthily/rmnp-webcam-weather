@@ -83,6 +83,9 @@ app.get("/weather", function (request, response) {
         var cropped = snap.crop(0, 0, Math.floor(snap.bitmap.width/5), Math.floor(snap.bitmap.height/5));
         
         var dom = thief.getColor(cropped);
+        // TODO: maybe figure out a percent blue from
+        //       these representative colors for some
+        //       idea of cloudy
         var palette = thief.getPalette(cropped);
         
         console.log(chroma(dom).hex());
@@ -91,9 +94,13 @@ app.get("/weather", function (request, response) {
         var am_i_blue = _close_to_blue(dom);
         console.log('am i weather? ', am_i_blue);
         
+        var how_much_blue = _calc_blue_percent(palette);
+        console.log('blues: ', how_much_blue);
+        
         response.json({
           "dominant": chroma(dom).hex(), 
           "palette": palette.map(p => chroma(p).hex()),
+          "percent": how_much_blue,
           "weather": am_i_blue !== true
         });
         
@@ -118,6 +125,18 @@ function _close_to_blue(color) {
   }
   
   return false;
+}
+
+function _calc_blue_percent(colors) {
+  // go through a set of colors
+  // see how many of them are blue
+  // as % of the set
+  
+  var blues = colors.filter(c => {
+    return _close_to_blue(c);
+  });
+  
+  return ((blues.length/colors.length) * 100.0).toFixed(0);
 }
 
 function _goldenhour(webcam) {
