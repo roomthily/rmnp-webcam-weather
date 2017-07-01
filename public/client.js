@@ -55,6 +55,6 @@ $(function() {
   });
 
   
-  const tmpl = Handlebars.compile('<div class="image"><h1 class="weather-{{weather}}">{{name}}</h1><img src="{{url}}"/><dl class="colors"><dt>{{dominant}}*</dt><dd style="background-color: {{dominant}};"></dd>{{#each palette}}<dt>{{.}}</dt><dd style="background-color: {{.}};"></dd>{{/each}}</dl></div>');
+  const tmpl = Handlebars.compile('<div class="image"><h1 class="weather-{{weather}}">{{name}}</h1><img src="{{url}}"/><dl class="colors"><dt>{{dominant}}* ({{percent}}%)</dt><dd style="background-color: {{dominant}};"></dd>{{#each palette}}<dt>{{.}}</dt><dd style="background-color: {{.}};"></dd>{{/each}}</dl></div>');
 
 });
