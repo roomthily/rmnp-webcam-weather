@@ -38,22 +38,20 @@ $(function() {
   var $div = $('div.palette');
   
   tests.forEach(function(cam) {
-    var qs = {
-      webcam: cam.webcam
-    };
     
-    for (var u in cam.urls) {
-      var url = cam.urls[u];
-      qs.url = url
+    
+    cam.urls.forEach(function (url) {
       console.log(cam.webcam, ' -> ', url);
-      $.get({url: '/weather', data:qs, success: function(data) {
+      $.get({url: '/weather', data:{webcam: cam.webcam, url: url}, success: function(data) {
         // templatize
         data.url = url;
         data.name = cam.name;
+        
+        console.log(data);
         var output = tmpl(data);
         $div.append(output);
       }});
-    }
+    });
   });
 
   
