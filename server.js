@@ -89,13 +89,13 @@ app.get("/weather", function (request, response) {
         console.log(chroma(dom).hex());
         console.log(palette);
         
-        var am_i_weather = _close_to_blue(dom);
-        console.log('am i weather? ', am_i_weather);
+        var am_i_blue = _close_to_blue(dom);
+        console.log('am i weather? ', am_i_blue);
         
         response.json({
           "dominant": chroma(dom).hex(), 
           "palette": palette.map(p => chroma(p).hex()),
-          "weather": am_i_weather
+          "weather": am_i_blue !== true
         });
         
       }).catch(function(err) {
@@ -108,6 +108,23 @@ app.get("/weather", function (request, response) {
 });
 
 function _close_to_blue(color) {
+  var hsl = chroma(color).hsl();
+  // is the hue within the blue range?
+  // is it too light or too dark?
+  // is it approaching unsaturated?
+  if ((hsl[0] > 180 && hsl[0] < 260) &&
+       (hsl[1] > 0.3) && (hsl[2] > 0.2 && hsl[2] < 0.9)
+     ) {
+      return true;
+  }
+  
+  return false;
+}
+
+// NOTE: this is probably not a good enough Is it blue? solution
+// too many false positives due to lightness/saturation similarities
+// (i think. did  not poke around too too much).
+function _close_to_blueX(color) {
   // something to test with since it is cloudy
   // #7CB3EC lighter rgb(124, 179, 236)
   // #567DC2 darker rgb(86, 125, 194)
