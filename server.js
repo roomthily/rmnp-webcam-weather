@@ -9,8 +9,7 @@ var suncalc = require('suncalc'),
     client = require('node-rest-client').Client, 
     jimp = require('jimp'),
     thief = require('color-thief-jimp'),
-    chroma = require('chroma-js'),
-    delta = require('delta-e');
+    chroma = require('chroma-js');
 
 // webcams: https://www.nps.gov/romo/learn/photosmultimedia/webcams.htm
 
@@ -121,51 +120,6 @@ function _close_to_blue(color) {
   return false;
 }
 
-// NOTE: this is probably not a good enough Is it blue? solution
-// too many false positives due to lightness/saturation similarities
-// (i think. did  not poke around too too much).
-function _close_to_blueX(color) {
-  // something to test with since it is cloudy
-  // #7CB3EC lighter rgb(124, 179, 236)
-  // #567DC2 darker rgb(86, 125, 194)
-  // co valley: #466FAF, #3E6699, #3F6DAB, #5F87C4
-  
-  // for testing the diff calcs
-  // red rgb(230, 24, 24)
-  // yellow rgb(230, 186,n 24)
-  // a green rgb(24, 230, 141)
-  // more turquoise rgb(8, 246, 226)
-  
-  // everything to lab colors
-  // as {L: , A: , B: }
-  var src_lab = chroma(color).lab();
-  var src = {L: src_lab[0], A: src_lab[1], B: src_lab[2]};
-  
-  // tmp sorrows (this includes a red, yellow, and greens)
-  // var blues = [[124, 179, 236], [86, 125, 194], [230, 24, 24], [230, 186, 24], [24, 230, 141], [8, 246, 226]].map(c => { var lab = chroma(c).lab(); return {L: lab[0], A: lab[1], B: lab[2]}});
-  
-  var blues = [
-    [124, 179, 236], 
-    [86, 125, 194],
-    [70, 111, 175],
-    [62, 102, 153],
-    [95, 135, 196],
-    [87, 93, 126]
-  ].map(
-    c => { var lab = chroma(c).lab(); return {L: lab[0], A: lab[1], B: lab[2]}}
-  );
-  
-  // if any is similar to the dominant color,
-  // it's not weather
-  // where similar = delta-e < 5?
-  // (5 is not high enough)
-  return blues.some(b => {
-    return delta.getDeltaE00(src, b) > 10.;
-  });
-}
-
-
-
 function _goldenhour(webcam) {
   // so check the webcam from the start of golden hour
   // to dusk for mountain time
@@ -193,6 +147,3 @@ var listener = app.listen(process.env.PORT, function () {
 // https://www.nps.gov/webcams-romo/glacier_basin.jpg?2017529132118
 // but! it might be possible without the timestamp qs
 
-
-// glacier basin snaps:
-//   https://cdn.glitch.com/a2065909-acd9-44c7-8be4-b37d17dee6ef%2Fglacier_basin_overcast.jpg?1498765829796
