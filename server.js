@@ -20,6 +20,9 @@ app.use(express.static('public'));
 app.get("/", function (request, response) {
   response.sendFile(__dirname + '/views/index.html');
 });
+app.get("/live", function (request, response) {
+  response.sendFile(__dirname + '/views/live.html');
+});
 
 // the webcam info
 //   url: base url to the image, ignoring the timestamp (seconds is problematic)
@@ -60,6 +63,8 @@ app.get("/weather", function (request, response) {
   
   var webcam = request.query.webcam || "divide";
   var url = request.query.url || webcams[webcam].url;
+  var return_tmp = request.query.url != undefined ? false : true;
+  var override = request.query.override || return_tmp;
  
   var Client = new client();
   var req = Client.get(url,
@@ -83,9 +88,6 @@ app.get("/weather", function (request, response) {
         var cropped = snap.crop(0, 0, Math.floor(snap.bitmap.width/5), Math.floor(snap.bitmap.height/5));
         
         var dom = thief.getColor(cropped);
-        // TODO: maybe figure out a percent blue from
-        //       these representative colors for some
-        //       idea of cloudy
         var palette = thief.getPalette(cropped);
         
         console.log(chroma(dom).hex());
@@ -97,13 +99,38 @@ app.get("/weather", function (request, response) {
         var how_much_blue = _calc_blue_percent(palette);
         console.log('blues: ', how_much_blue);
         
-        response.json({
+        var output = {
           "dominant": chroma(dom).hex(), 
           "palette": palette.map(p => chroma(p).hex()),
           "percent": how_much_blue,
           "weather": am_i_blue !== true
-        });
+        }
         
+        if (return_tmp || override) {
+          // rescale?
+          // save the image to a tmp file
+          // (only lasts ~15min on glitch before container rebuilt)
+          // and return the url for it
+          // to get past the datetime oddities (also does not appear
+          //  to matter to rmnp)
+          
+          //but trying base64 datauri first
+          // 
+          
+          snap.getBase64(jimp.MIME_JPEG, (err, base64image) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            output["dataUri"] = base64image;
+            output["mime"] = "image/jpeg";
+            response.json(output);
+          });
+          
+        } else {
+          output["url"] = url;
+          response.json(output);
+        }        
       }).catch(function(err) {
         console.log('jimp error: ', err);
       }); 
