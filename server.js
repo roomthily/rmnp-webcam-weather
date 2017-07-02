@@ -65,6 +65,8 @@ app.get("/weather", function (request, response) {
   var url = request.query.url || webcams[webcam].url;
   var return_tmp = request.query.url != undefined ? false : true;
   var override = request.query.override || return_tmp;
+  
+  var bounds = webcams[webcam].crop;
  
   var Client = new client();
   var req = Client.get(url,
@@ -85,7 +87,9 @@ app.get("/weather", function (request, response) {
         
         // for the divide view, it's like a box in the upper left
         // so let's fake the mask part and deal with the color
-        var cropped = snap.crop(0, 0, Math.floor(snap.bitmap.width/5), Math.floor(snap.bitmap.height/5));
+        // var cropped = snap.crop(0, 0, Math.floor(snap.bitmap.width/5), Math.floor(snap.bitmap.height/5));
+        
+        var cropped = snap.crop(bounds[0], bounds[1], bounds[2], bounds[3]);
         
         var dom = thief.getColor(cropped);
         var palette = thief.getPalette(cropped);
@@ -107,23 +111,17 @@ app.get("/weather", function (request, response) {
         }
         
         if (return_tmp || override) {
-          // rescale?
-          // save the image to a tmp file
           // (only lasts ~15min on glitch before container rebuilt)
-          // and return the url for it
+          // and return the base64 data for it
           // to get past the datetime oddities (also does not appear
           //  to matter to rmnp)
           
-          //but trying base64 datauri first
-          // 
-          
-          snap.getBase64(jimp.MIME_JPEG, (err, base64image) => {
+          cropped.getBase64(jimp.MIME_JPEG, (err, base64image) => {
             if (err) {
               console.log(err);
               return;
             }
             output["dataUri"] = base64image;
-            output["mime"] = "image/jpeg";
             response.json(output);
           });
           
