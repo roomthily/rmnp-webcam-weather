@@ -32,7 +32,6 @@ $(function() {
       data.name = cam.name;
       
       // if not sending a url, the image is returned as a tmp url
-
       console.log(data);
       var output = tmpl(data);
       $div.append(output);
